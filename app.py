@@ -512,8 +512,9 @@ with right:
         if len(sel_dates) == 0:
             st.info("No data in selected range.")
         else:
-            d0 = sel_dates[0].date()
-            d1 = sel_dates[-1].date()
+            d0 = pd.Timestamp(sel_dates[0]).date()
+            d1 = pd.Timestamp(sel_dates[-1]).date()
+
             pivot_date = st.slider("Pick a date", min_value=d0, max_value=d1, value=d1)
             window_days = st.slider("Window size (days)", 7, 180, 30, 7)
             window_start = pivot_date - timedelta(days=window_days)
