@@ -1,8 +1,3 @@
-"""
-Musical Fingerprint - Spotify Listening Dashboard
-A beautifully styled dashboard showing your unique listening patterns
-"""
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -21,7 +16,7 @@ st.set_page_config(
 )
 
 # ----------------------------
-# Spotify-Inspired Design System
+# Design System
 # ----------------------------
 SPOTIFY = {
     "bg_dark": "#121212",
@@ -51,15 +46,12 @@ GENRE_COLORS = {
 }
 
 # ----------------------------
-# Custom CSS - Spotify Dark Theme
+# Custom CSS (from v2)
 # ----------------------------
 st.markdown(f"""
 <style>
-    /* Import Spotify-like fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Circular+Std:wght@400;500;700;900&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
     
-    /* Global styles */
     .stApp {{
         background: linear-gradient(180deg, {SPOTIFY["bg_dark"]} 0%, #0a0a0a 100%);
     }}
@@ -69,21 +61,18 @@ st.markdown(f"""
         max-width: 1600px;
     }}
     
-    /* Hide Streamlit branding */
     #MainMenu, footer {{visibility: hidden;}}
     
-    /* Typography */
+    h1, h2, h3, h4, h5, h6, p, span, div, label {{
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }}
+    
     h1, h2, h3, h4, h5, h6 {{
-        font-family: 'DM Sans', 'Circular Std', -apple-system, BlinkMacSystemFont, sans-serif !important;
         color: {SPOTIFY["white"]} !important;
         letter-spacing: -0.02em;
     }}
     
-    p, span, div {{
-        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    }}
-    
-    /* Header styling */
+    /* Header */
     .dashboard-header {{
         display: flex;
         align-items: center;
@@ -93,7 +82,7 @@ st.markdown(f"""
     
     .fingerprint-icon {{
         font-size: 48px;
-        filter: drop-shadow(0 0 20px {SPOTIFY["green"]}40);
+        filter: drop-shadow(0 0 20px rgba(29, 185, 84, 0.4));
     }}
     
     .dashboard-title {{
@@ -127,7 +116,7 @@ st.markdown(f"""
         border-radius: 12px;
         padding: 16px 20px;
         flex: 1;
-        min-width: 140px;
+        min-width: 130px;
         position: relative;
         overflow: hidden;
         transition: all 0.3s ease;
@@ -139,190 +128,115 @@ st.markdown(f"""
         box-shadow: 0 8px 25px rgba(29, 185, 84, 0.15);
     }}
     
-    .kpi-card::before {{
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, {SPOTIFY["green"]} 0%, {SPOTIFY["green_light"]} 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }}
-    
-    .kpi-card:hover::before {{
-        opacity: 1;
-    }}
-    
     .kpi-label {{
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: {SPOTIFY["text_muted"]};
         text-transform: uppercase;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.08em;
         margin-bottom: 6px;
     }}
     
     .kpi-value {{
-        font-size: 1.75rem;
+        font-size: 1.6rem;
         font-weight: 700;
         color: {SPOTIFY["white"]};
         line-height: 1;
     }}
     
     .kpi-trend {{
-        font-size: 0.75rem;
-        color: {SPOTIFY["green"]};
-        margin-top: 6px;
+        font-size: 0.7rem;
+        color: {SPOTIFY["text_muted"]};
+        margin-top: 4px;
     }}
     
-    /* Section Cards */
+    /* Section Card (from v3) */
     .section-card {{
         background: {SPOTIFY["bg_card"]};
         border: 1px solid {SPOTIFY["border"]};
         border-radius: 12px;
-        padding: 20px;
+        padding: 16px;
         margin-bottom: 16px;
-        transition: all 0.2s ease;
     }}
     
-    .section-card:hover {{
-        border-color: {SPOTIFY["bg_highlight"]};
-    }}
-    
-    .section-title {{
-        font-size: 1rem;
-        font-weight: 700;
-        color: {SPOTIFY["white"]};
-        margin-bottom: 16px;
+    .section-card-title {{
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: {SPOTIFY["text_muted"]};
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
         gap: 8px;
     }}
     
-    .section-title-icon {{
-        font-size: 1.2rem;
+    /* Section header (from v2) */
+    .section-header {{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
     }}
     
-    /* Top Item Cards */
+    .section-title {{
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: {SPOTIFY["white"]};
+        margin: 0;
+    }}
+    
+    /* Top item cards */
     .top-item-card {{
         background: linear-gradient(135deg, {SPOTIFY["bg_elevated"]} 0%, {SPOTIFY["bg_card"]} 100%);
         border: 1px solid {SPOTIFY["border"]};
         border-radius: 12px;
-        padding: 16px;
+        padding: 14px;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 12px;
         transition: all 0.2s ease;
+        margin-bottom: 8px;
     }}
     
     .top-item-card:hover {{
         border-color: {SPOTIFY["green"]};
-        background: linear-gradient(135deg, {SPOTIFY["bg_highlight"]} 0%, {SPOTIFY["bg_elevated"]} 100%);
     }}
     
-    .top-item-rank {{
+    .play-icon {{
         width: 36px;
         height: 36px;
-        background: linear-gradient(135deg, {SPOTIFY["green"]} 0%, {SPOTIFY["green_light"]} 100%);
-        border-radius: 8px;
+        background: {SPOTIFY["green"]};
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
-        font-size: 1rem;
         color: {SPOTIFY["bg_dark"]};
+        font-size: 14px;
         flex-shrink: 0;
-    }}
-    
-    .top-item-info {{
-        flex: 1;
-        min-width: 0;
     }}
     
     .top-item-name {{
         font-weight: 600;
         color: {SPOTIFY["white"]};
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }}
     
     .top-item-sub {{
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: {SPOTIFY["text_muted"]};
         margin-top: 2px;
     }}
     
-    .top-item-stat {{
-        font-weight: 700;
-        color: {SPOTIFY["green"]};
-        font-size: 0.9rem;
-        flex-shrink: 0;
-    }}
-    
-    /* Play button style */
-    .play-icon {{
-        width: 32px;
-        height: 32px;
-        background: {SPOTIFY["green"]};
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }}
-    
-    /* Filter pills */
-    .filter-container {{
-        display: flex;
-        gap: 8px;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-    }}
-    
-    .filter-pill {{
-        background: {SPOTIFY["bg_elevated"]};
-        border: 1px solid {SPOTIFY["border"]};
-        border-radius: 20px;
-        padding: 6px 14px;
-        font-size: 0.8rem;
-        color: {SPOTIFY["text_secondary"]};
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }}
-    
-    .filter-pill:hover, .filter-pill.active {{
-        background: {SPOTIFY["green"]};
-        color: {SPOTIFY["bg_dark"]};
-        border-color: {SPOTIFY["green"]};
-    }}
-    
-    /* Commitment calendar legend */
-    .calendar-legend {{
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        justify-content: flex-end;
-        margin-top: 8px;
-        font-size: 0.7rem;
-        color: {SPOTIFY["text_muted"]};
-    }}
-    
-    .legend-box {{
-        width: 12px;
-        height: 12px;
-        border-radius: 2px;
-    }}
-    
-    /* Billboard table */
+    /* Billboard */
     .billboard-item {{
         display: flex;
         align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid {SPOTIFY["border"]}20;
-        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(64, 64, 64, 0.2);
+        gap: 10px;
     }}
     
     .billboard-item:last-child {{
@@ -330,137 +244,117 @@ st.markdown(f"""
     }}
     
     .billboard-rank {{
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 700;
         color: {SPOTIFY["text_muted"]};
-        width: 24px;
+        width: 20px;
         text-align: center;
     }}
     
-    .billboard-bar {{
+    .billboard-name {{
         flex: 1;
-        height: 8px;
-        background: {SPOTIFY["bg_highlight"]};
-        border-radius: 4px;
+        font-size: 0.8rem;
+        color: {SPOTIFY["white"]};
+        white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }}
+    
+    .billboard-bar {{
+        width: 80px;
+        height: 6px;
+        background: {SPOTIFY["bg_highlight"]};
+        border-radius: 3px;
+        overflow: hidden;
+        flex-shrink: 0;
     }}
     
     .billboard-bar-fill {{
         height: 100%;
         background: linear-gradient(90deg, {SPOTIFY["green"]} 0%, {SPOTIFY["green_light"]} 100%);
-        border-radius: 4px;
-    }}
-    
-    .billboard-name {{
-        flex: 2;
-        font-size: 0.85rem;
-        color: {SPOTIFY["white"]};
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        border-radius: 3px;
     }}
     
     .billboard-value {{
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: {SPOTIFY["text_secondary"]};
-        width: 60px;
+        width: 50px;
         text-align: right;
-    }}
-    
-    /* Plotly chart containers */
-    .chart-container {{
-        background: {SPOTIFY["bg_card"]};
-        border-radius: 12px;
-        padding: 16px;
-        border: 1px solid {SPOTIFY["border"]};
-    }}
-    
-    /* Streamlit component overrides */
-    .stSelectbox > div > div {{
-        background: {SPOTIFY["bg_elevated"]};
-        border-color: {SPOTIFY["border"]};
-        color: {SPOTIFY["white"]};
-    }}
-    
-    .stRadio > div {{
-        gap: 8px;
-    }}
-    
-    .stRadio > div > label {{
-        background: {SPOTIFY["bg_elevated"]};
-        border: 1px solid {SPOTIFY["border"]};
-        border-radius: 20px;
-        padding: 6px 14px;
-        color: {SPOTIFY["text_secondary"]};
-        transition: all 0.2s ease;
-    }}
-    
-    .stRadio > div > label:hover {{
-        border-color: {SPOTIFY["green"]};
-    }}
-    
-    .stRadio > div > label[data-checked="true"] {{
-        background: {SPOTIFY["green"]};
-        color: {SPOTIFY["bg_dark"]};
-        border-color: {SPOTIFY["green"]};
+        flex-shrink: 0;
     }}
     
     /* Divider */
     hr {{
         border: none;
         height: 1px;
-        background: linear-gradient(90deg, transparent, {SPOTIFY["border"]}, transparent);
-        margin: 20px 0;
+        background: {SPOTIFY["border"]};
+        margin: 16px 0;
+        opacity: 0.5;
     }}
     
-    /* Sidebar styling */
-    section[data-testid="stSidebar"] {{
-        background: {SPOTIFY["bg_card"]};
-        border-right: 1px solid {SPOTIFY["border"]};
+    /* Radio buttons */
+    .stRadio > div {{
+        flex-direction: row !important;
+        gap: 4px !important;
+        background: {SPOTIFY["bg_elevated"]};
+        padding: 4px;
+        border-radius: 8px;
+        border: 1px solid {SPOTIFY["border"]};
     }}
     
-    section[data-testid="stSidebar"] .stRadio > label {{
-        color: {SPOTIFY["white"]};
+    .stRadio > div > label {{
+        background: transparent !important;
+        border: none !important;
+        padding: 6px 12px !important;
+        margin: 0 !important;
+        border-radius: 6px !important;
+        color: {SPOTIFY["text_secondary"]} !important;
+        font-size: 0.8rem !important;
+        cursor: pointer;
+        transition: all 0.2s ease;
     }}
     
-    /* Metric delta colors */
-    [data-testid="stMetricDelta"] svg {{
-        stroke: {SPOTIFY["green"]};
-    }}
-    
-    /* Expander */
-    .streamlit-expanderHeader {{
-        background: {SPOTIFY["bg_elevated"]} !important;
-        border-radius: 8px !important;
+    .stRadio > div > label:hover {{
+        background: {SPOTIFY["bg_highlight"]} !important;
         color: {SPOTIFY["white"]} !important;
     }}
     
-    /* Tooltip styling for charts */
-    .js-plotly-plot .plotly .hoverlayer {{
-        font-family: 'DM Sans', sans-serif !important;
+    .stRadio > div > label[data-checked="true"] {{
+        background: {SPOTIFY["green"]} !important;
+        color: {SPOTIFY["bg_dark"]} !important;
     }}
     
-    /* Slider */
-    .stSlider > div > div > div {{
-        background: {SPOTIFY["green"]} !important;
+    /* Selectbox */
+    .stSelectbox > div > div {{
+        background: {SPOTIFY["bg_elevated"]} !important;
+        border-color: {SPOTIFY["border"]} !important;
     }}
     
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] {{
-        gap: 8px;
-        background: transparent;
+        gap: 0;
+        background: {SPOTIFY["bg_elevated"]};
+        padding: 3px;
+        border-radius: 8px;
     }}
     
     .stTabs [data-baseweb="tab"] {{
-        background: {SPOTIFY["bg_elevated"]};
-        border-radius: 8px;
+        background: transparent;
+        border-radius: 6px;
         color: {SPOTIFY["text_secondary"]};
-        padding: 8px 16px;
+        padding: 6px 14px;
+        font-size: 0.8rem;
     }}
     
     .stTabs [aria-selected="true"] {{
         background: {SPOTIFY["green"]} !important;
         color: {SPOTIFY["bg_dark"]} !important;
+    }}
+    
+    /* Toggle */
+    div[data-testid="stCheckbox"] label span {{
+        color: {SPOTIFY["text_secondary"]} !important;
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -468,98 +362,56 @@ st.markdown(f"""
 # ----------------------------
 # Helper Functions
 # ----------------------------
-REQUIRED_COLS = [
-    "ts", "ms_played",
-    "master_metadata_track_name",
-    "master_metadata_album_artist_name",
-    "master_metadata_album_album_name",
-    "artist_popularity",
-    "artist_genres",
-    "genre_bucket",
-    "skipped"
-]
+REQUIRED_COLS = ["ts", "ms_played", "master_metadata_track_name", "master_metadata_album_artist_name",
+                 "master_metadata_album_album_name", "artist_popularity", "artist_genres", "genre_bucket", "skipped"]
+
+def clean_string(s):
+    if pd.isna(s): return None
+    s = str(s).strip()
+    return None if s.lower() in ["nan", "none", "undefined", "null", ""] else s
 
 def _to_bool(x):
-    if isinstance(x, bool):
-        return x
-    if pd.isna(x):
-        return False
-    s = str(x).strip().lower()
-    return s in ["true", "t", "1", "yes", "y"]
+    if isinstance(x, bool): return x
+    if pd.isna(x): return False
+    return str(x).strip().lower() in ["true", "t", "1", "yes", "y"]
 
+def section_header(icon, title, help_text=None):
+    st.markdown(f'''<div class="section-header">
+        <span style="font-size: 1.1rem;">{icon}</span>
+        <span class="section-title">{title}</span>
+    </div>''', unsafe_allow_html=True)
+    if help_text:
+        st.caption(help_text)
 
-def style_fig(fig, height=300, show_legend=True):
-    """Apply Spotify-inspired styling to Plotly figures"""
+def style_fig(fig, height=300, show_legend=False):
     fig.update_layout(
         height=height,
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(
-            color=SPOTIFY["text_secondary"],
-            family="DM Sans, -apple-system, BlinkMacSystemFont, sans-serif",
-            size=12
-        ),
-        margin=dict(l=20, r=20, t=40, b=20),
-        title=dict(
-            font=dict(size=14, color=SPOTIFY["white"]),
-            x=0,
-            xanchor="left"
-        ),
+        font=dict(color=SPOTIFY["text_secondary"], family="DM Sans", size=11),
+        margin=dict(l=10, r=10, t=10, b=10),
         showlegend=show_legend,
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="left",
-            x=0,
-            bgcolor="rgba(0,0,0,0)",
-            font=dict(size=11, color=SPOTIFY["text_secondary"])
-        ),
-        hoverlabel=dict(
-            bgcolor=SPOTIFY["bg_elevated"],
-            font_size=12,
-            font_family="DM Sans",
-            bordercolor=SPOTIFY["border"]
-        )
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0, bgcolor="rgba(0,0,0,0)", font=dict(size=10)),
+        hoverlabel=dict(bgcolor=SPOTIFY["bg_elevated"], font_size=11, bordercolor=SPOTIFY["border"])
     )
-    fig.update_xaxes(
-        showgrid=True,
-        gridcolor="rgba(64, 64, 64, 0.25)",
-        zeroline=False,
-        showline=False,
-        tickfont=dict(size=10)
-    )
-    fig.update_yaxes(
-        showgrid=True,
-        gridcolor="rgba(64, 64, 64, 0.25)",
-        zeroline=False,
-        showline=False,
-        tickfont=dict(size=10)
-    )
+    fig.update_xaxes(showgrid=True, gridcolor="rgba(64,64,64,0.2)", zeroline=False, tickfont=dict(size=9))
+    fig.update_yaxes(showgrid=True, gridcolor="rgba(64,64,64,0.2)", zeroline=False, tickfont=dict(size=9))
     return fig
 
-
 @st.cache_data(show_spinner=False)
-def load_csv(uploaded_file=None, path=None) -> pd.DataFrame:
+def load_csv(uploaded_file=None, path=None):
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
     elif path is not None:
         df = pd.read_csv(path)
     else:
         return pd.DataFrame()
-
-    missing = [c for c in REQUIRED_COLS if c not in df.columns]
-    if missing:
-        raise ValueError(f"Missing columns: {missing}")
-
-    df = df.copy()
+    
     df["ts"] = pd.to_datetime(df["ts"], utc=True, errors="coerce")
     df = df.dropna(subset=["ts"])
     df["ms_played"] = pd.to_numeric(df["ms_played"], errors="coerce").fillna(0).astype(int)
     df["skipped"] = df["skipped"].apply(_to_bool)
-    df["artist_popularity"] = pd.to_numeric(df["artist_popularity"], errors="coerce").fillna(np.nan)
-    
-    # Time helpers
+    df["artist_popularity"] = pd.to_numeric(df["artist_popularity"], errors="coerce")
     df["date"] = df["ts"].dt.date
     df["year"] = df["ts"].dt.year
     df["month"] = df["ts"].dt.to_period("M").astype(str)
@@ -567,100 +419,88 @@ def load_csv(uploaded_file=None, path=None) -> pd.DataFrame:
     df["hour"] = df["ts"].dt.hour
     df["start_ts"] = df["ts"] - pd.to_timedelta(df["ms_played"], unit="ms")
     
-    if "track_id" not in df.columns:
-        df["track_id"] = (df["master_metadata_album_artist_name"].astype(str) + "§" +
-                          df["master_metadata_track_name"].astype(str))
-    
     for c in ["master_metadata_track_name", "master_metadata_album_artist_name",
               "master_metadata_album_album_name", "genre_bucket", "artist_genres"]:
-        df[c] = df[c].astype(str).fillna("")
+        df[c] = df[c].apply(clean_string)
     
+    df["track_id"] = df.apply(lambda r: f"{r['master_metadata_album_artist_name']}§{r['master_metadata_track_name']}" 
+                              if r['master_metadata_track_name'] and r['master_metadata_album_artist_name'] else None, axis=1)
     return df
 
-
-DEMO_PATH = "music_data.csv"
-
-@st.cache_data(show_spinner=False)
-def load_demo_file() -> pd.DataFrame:
-    return load_csv(path=DEMO_PATH)
-
-
-def measure_value(df: pd.DataFrame, measure: str) -> pd.Series:
-    if measure == "Streams":
-        return pd.Series(np.ones(len(df), dtype=float), index=df.index)
-    return df["ms_played"] / (1000 * 60)
-
+def measure_value(df, measure):
+    return pd.Series(np.ones(len(df)), index=df.index) if measure == "Streams" else df["ms_played"] / 60000
 
 def fmt_number(n):
-    """Format large numbers nicely"""
     try:
-        if abs(n) >= 1_000_000:
-            return f"{n/1_000_000:.1f}M"
-        if abs(n) >= 1_000:
-            return f"{n/1_000:.1f}K"
-        if isinstance(n, float) and not n.is_integer():
-            return f"{n:.1f}"
-        return f"{int(n):,}"
-    except:
-        return str(n)
+        if abs(n) >= 1e6: return f"{n/1e6:.1f}M"
+        if abs(n) >= 1e3: return f"{n/1e3:.1f}K"
+        return f"{int(n):,}" if float(n).is_integer() else f"{n:.1f}"
+    except: return str(n)
 
-
-@st.cache_data(show_spinner=False)
-def compute_first_listen_flags(df: pd.DataFrame) -> pd.DataFrame:
-    """Mark first-time listens for each track"""
-    first_ts = df.groupby("track_id")["ts"].min()
-    df = df.copy()
-    df["first_listen_ts"] = df["track_id"].map(first_ts)
-    df["is_new_to_you"] = df["ts"] == df["first_listen_ts"]
-    return df
-
-
-@st.cache_data(show_spinner=False)
-def compute_old_vs_new_monthly(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    FIXED: Count unique songs per month that are new vs old.
-    A song is "new" in a month if its first-ever listen was in that month.
-    A song is "old" if it was first listened to in a previous month.
-    Each song counts ONCE per month regardless of replays.
-    """
-    df = df.copy()
+@st.cache_data
+def compute_discovery(df_full, df_filtered):
+    """Compute discovery metrics: % of new artists/tracks in filtered period"""
+    first_artist = df_full.dropna(subset=["master_metadata_album_artist_name"]).groupby("master_metadata_album_artist_name")["ts"].min()
+    first_track = df_full.dropna(subset=["track_id"]).groupby("track_id")["ts"].min()
     
-    # Get first listen timestamp for each track
-    first_listen = df.groupby("track_id")["ts"].min().reset_index()
+    period_start = df_filtered["ts"].min()
+    period_end = df_filtered["ts"].max()
+    
+    new_artists = first_artist[(first_artist >= period_start) & (first_artist <= period_end)]
+    new_tracks = first_track[(first_track >= period_start) & (first_track <= period_end)]
+    
+    period_artists = df_filtered["master_metadata_album_artist_name"].dropna().nunique()
+    period_tracks = df_filtered["track_id"].dropna().nunique()
+    
+    pct_new_artists = (len(new_artists) / period_artists * 100) if period_artists > 0 else 0
+    pct_new_tracks = (len(new_tracks) / period_tracks * 100) if period_tracks > 0 else 0
+    
+    return pct_new_artists, pct_new_tracks, len(new_artists), len(new_tracks)
+
+@st.cache_data
+def compute_old_vs_new_monthly_fixed(df_full, start_date, end_date):
+    """
+    FIXED: Compute old vs new using FULL dataset for first listen detection,
+    then filter to display only the selected period (zoom effect)
+    """
+    df_clean = df_full.dropna(subset=["track_id"]).copy()
+    if len(df_clean) == 0: return pd.DataFrame()
+    
+    # Get first listen from FULL dataset (not filtered)
+    first_listen = df_clean.groupby("track_id")["ts"].min().reset_index()
     first_listen.columns = ["track_id", "first_listen_ts"]
     first_listen["first_listen_month"] = pd.to_datetime(first_listen["first_listen_ts"]).dt.to_period("M").astype(str)
     
-    # Get unique track-month combinations
-    track_months = df.groupby(["month", "track_id"]).size().reset_index(name="play_count")
+    # Group by month for full dataset
+    track_months = df_clean.groupby(["month", "track_id"]).size().reset_index(name="play_count")
     track_months = track_months.merge(first_listen[["track_id", "first_listen_month"]], on="track_id")
-    
-    # A track is "new" in a month if that month equals the first listen month
     track_months["is_new"] = track_months["month"] == track_months["first_listen_month"]
     
-    # Count unique tracks per month by new/old status
-    monthly_counts = track_months.groupby(["month", "is_new"]).agg(
-        unique_tracks=("track_id", "nunique")
-    ).reset_index()
-    
+    monthly_counts = track_months.groupby(["month", "is_new"]).agg(unique_tracks=("track_id", "nunique")).reset_index()
     pivot = monthly_counts.pivot(index="month", columns="is_new", values="unique_tracks").fillna(0)
-    pivot.columns = ["Old tracks", "New tracks"] if list(pivot.columns) == [False, True] else [str(c) for c in pivot.columns]
+    
+    if False in pivot.columns and True in pivot.columns:
+        pivot.columns = ["Old tracks", "New tracks"]
     pivot = pivot.reset_index()
+    
+    # Filter to selected date range (zoom effect)
+    start_month = pd.Timestamp(start_date).to_period("M").strftime("%Y-%m")
+    end_month = pd.Timestamp(end_date).to_period("M").strftime("%Y-%m")
+    pivot = pivot[(pivot["month"] >= start_month) & (pivot["month"] <= end_month)]
     
     return pivot
 
-
-@st.cache_data(show_spinner=False)
-def sessionize(df: pd.DataFrame, gap_minutes=15) -> pd.DataFrame:
-    """Group plays into sessions based on time gaps"""
+@st.cache_data
+def sessionize(df, gap_minutes=15):
+    if len(df) == 0: return df
     d = df.sort_values("start_ts").copy()
     gap = pd.Timedelta(minutes=gap_minutes)
     prev_end = d["ts"].shift(1)
     new_session = (d["start_ts"] - prev_end) > gap
     d["session_id"] = new_session.cumsum().fillna(0).astype(int)
-    session_len = d.groupby("session_id")["ms_played"].sum() / (1000 * 60)
+    session_len = d.groupby("session_id")["ms_played"].sum() / 60000
     d["session_minutes"] = d["session_id"].map(session_len)
     return d
-
 
 def bins_session_minutes(x):
     if x < 120: return "<2h"
@@ -668,124 +508,123 @@ def bins_session_minutes(x):
     if x < 360: return "4–6h"
     return ">6h"
 
+def create_gauge(value, max_val=100):
+    """Create a half-circle gauge chart (from v3)"""
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=value,
+        number={"suffix": "%", "font": {"size": 32, "color": SPOTIFY["white"]}},
+        gauge={
+            "axis": {"range": [0, max_val], "visible": False},
+            "bar": {"color": SPOTIFY["green"], "thickness": 0.8},
+            "bgcolor": SPOTIFY["bg_highlight"],
+            "borderwidth": 0,
+        }
+    ))
+    fig.update_layout(
+        height=130,
+        margin=dict(l=20, r=20, t=40, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+    )
+    return fig
 
-# ----------------------------
-# Sidebar Controls
-# ----------------------------
-with st.sidebar:
-    st.markdown(f"""
-    <div style="text-align: center; padding: 20px 0;">
-        <span style="font-size: 40px;">🎧</span>
-        <h2 style="margin: 10px 0 5px 0; color: {SPOTIFY['white']};">Controls</h2>
+st.markdown(f"""
+<div class="dashboard-header">
+    <span class="fingerprint-icon">🎧</span>
+    <div>
+        <h1 class="dashboard-title">Musical Fingerprint</h1>
+        <p class="dashboard-subtitle">Your unique listening DNA — patterns, genres, discoveries & obsessions</p>
     </div>
-    """, unsafe_allow_html=True)
-    
-    use_demo = st.toggle("Use included dataset", value=True)
-    
-    uploaded = None
-    if not use_demo:
-        uploaded = st.file_uploader("Upload your Spotify CSV", type=["csv"])
-    
-    st.divider()
-    
-    measure = st.radio("📊 Measure", ["Streams", "Minutes"], horizontal=True)
-    
-    st.divider()
-    
-    st.markdown(f"<p style='color: {SPOTIFY['text_muted']}; font-size: 0.8rem;'>Tip: Toggle the sidebar with the arrow on desktop, or swipe on mobile.</p>", unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
-# ----------------------------
-# Load Data
-# ----------------------------
+st.markdown("---")
+
+filter_col1, filter_col2, filter_col3, filter_col4 = st.columns([1.5, 1, 0.6, 0.8])
+
+with filter_col1:
+    time_options = ["30 days", "90 days", "180 days", "Year", "Lifetime"]
+    selected_time = st.radio("Time", time_options, index=4, horizontal=True, label_visibility="collapsed")
+
+with filter_col4:
+    use_demo = st.checkbox("Use demo data", value=True)
+    if not use_demo:
+        uploaded_file = st.file_uploader("", type=["csv"], label_visibility="collapsed")
+    else:
+        uploaded_file = None
+
+# Load data
 try:
     if use_demo:
-        df = load_demo_file()
+        df = load_csv(path="music_data.csv")
+    elif uploaded_file:
+        df = load_csv(uploaded_file=uploaded_file)
     else:
-        if uploaded is None:
-            st.info("👈 Upload your CSV in the sidebar or enable 'Use included dataset'")
-            st.stop()
-        df = load_csv(uploaded_file=uploaded)
+        st.info("Please upload a CSV file or enable demo data")
+        st.stop()
 except Exception as e:
-    st.error(f"Failed to load data: {e}")
+    st.error(f"Error loading data: {e}")
     st.stop()
 
-# ----------------------------
-# Header
-# ----------------------------
-header_col1, header_col2 = st.columns([3, 1])
+min_date, max_date = df["date"].min(), df["date"].max()
 
-with header_col1:
-    st.markdown(f"""
-    <div class="dashboard-header">
-        <span class="fingerprint-icon">🎧</span>
-        <div>
-            <h1 class="dashboard-title">Musical Fingerprint</h1>
-            <p class="dashboard-subtitle">Your unique listening DNA — patterns, genres, discoveries & obsessions</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with header_col2:
-    # Date filter in header for prominence
-    min_date = df["date"].min()
-    max_date = df["date"].max()
-    date_range = st.date_input(
-        "📅 Date Range",
-        value=(min_date, max_date),
-        min_value=min_date,
-        max_value=max_date,
-        label_visibility="collapsed"
-    )
+with filter_col2:
+    today = max_date
+    preset_ranges = {
+        "30 days": (today - timedelta(days=30), today),
+        "90 days": (today - timedelta(days=90), today),
+        "180 days": (today - timedelta(days=180), today),
+        "Year": (date(today.year, 1, 1), today),
+        "Lifetime": (min_date, max_date),
+    }
+    default_start, default_end = preset_ranges.get(selected_time, (min_date, max_date))
+    default_start = max(default_start, min_date)
+    default_end = min(default_end, max_date)
     
-    if isinstance(date_range, tuple) and len(date_range) == 2:
-        start_date, end_date = date_range
-    else:
-        start_date, end_date = min_date, max_date
+    date_range = st.date_input("Dates", (default_start, default_end), min_value=min_date, max_value=max_date, label_visibility="collapsed")
+    start_date, end_date = (date_range[0], date_range[1]) if len(date_range) == 2 else (default_start, default_end)
+
+with filter_col3:
+    measure = st.selectbox("Measure", ["Streams", "Minutes"], label_visibility="collapsed")
 
 # Filter data
 mask = (df["date"] >= start_date) & (df["date"] <= end_date)
-df_f = df.loc[mask].copy()
-df_new = compute_first_listen_flags(df)
-df_new_f = df_new.loc[mask].copy()
+df_f = df[mask].copy()
 
-st.markdown("<hr>", unsafe_allow_html=True)
+if len(df_f) == 0:
+    st.warning("No data in selected range")
+    st.stop()
 
 # ----------------------------
-# KPI Row
+# KPI ROW
 # ----------------------------
 total_streams = len(df_f)
-total_minutes = df_f["ms_played"].sum() / (1000 * 60)
+total_minutes = df_f["ms_played"].sum() / 60000
 total_hours = total_minutes / 60
-n_tracks = df_f["master_metadata_track_name"].nunique()
-n_artists = df_f["master_metadata_album_artist_name"].nunique()
-n_albums = df_f["master_metadata_album_album_name"].nunique()
-
-# Calculate discovery stats
-new_tracks_count = df_new_f["is_new_to_you"].sum()
-discovery_pct = (new_tracks_count / len(df_new_f) * 100) if len(df_new_f) > 0 else 0
-
-# Avg skip time for skipped tracks
+n_tracks = df_f["track_id"].dropna().nunique()
+n_artists = df_f["master_metadata_album_artist_name"].dropna().nunique()
+n_albums = df_f["master_metadata_album_album_name"].dropna().nunique()
 avg_skip_time = df_f[df_f["skipped"]]["ms_played"].mean() / 1000 if df_f["skipped"].any() else 0
 
 st.markdown(f"""
 <div class="kpi-container">
     <div class="kpi-card">
-        <div class="kpi-label">Total Streams</div>
+        <div class="kpi-label">Streams</div>
         <div class="kpi-value">{fmt_number(total_streams)}</div>
-        <div class="kpi-trend">plays in range</div>
+        <div class="kpi-trend">total plays</div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-label">Hours Listened</div>
+        <div class="kpi-label">Hours</div>
         <div class="kpi-value">{total_hours:,.1f}</div>
-        <div class="kpi-trend">{total_minutes:,.0f} minutes total</div>
+        <div class="kpi-trend">{total_minutes:,.0f} min</div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-label">Unique Tracks</div>
+        <div class="kpi-label">Tracks</div>
         <div class="kpi-value">{fmt_number(n_tracks)}</div>
-        <div class="kpi-trend">different songs</div>
+        <div class="kpi-trend">unique songs</div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-label">Unique Artists</div>
+        <div class="kpi-label">Artists</div>
         <div class="kpi-value">{fmt_number(n_artists)}</div>
         <div class="kpi-trend">discovered</div>
     </div>
@@ -803,450 +642,369 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ----------------------------
-# Main Dashboard Grid
+# ROW 1: Clock | Sessions | Calendar
 # ----------------------------
-
-# Row 1: Top Artist + Top Track + Commitment Calendar
 col1, col2, col3 = st.columns([1, 1, 2])
 
 with col1:
-    st.markdown(f'<div class="section-title"><span class="section-title-icon">👑</span> No.1 Artist</div>', unsafe_allow_html=True)
-    
-    top_artist = (
-        df_f.groupby("master_metadata_album_artist_name")["ms_played"]
-        .sum()
-        .sort_values(ascending=False)
-        .head(1)
-    )
-    
-    if len(top_artist) > 0:
-        artist_name = top_artist.index[0]
-        artist_streams = df_f[df_f['master_metadata_album_artist_name'] == artist_name].shape[0]
-        artist_mins = top_artist.iloc[0] / (1000 * 60)
-        
-        st.markdown(f"""
-        <div class="top-item-card">
-            <div class="play-icon">▶</div>
-            <div class="top-item-info">
-                <div class="top-item-name">{artist_name}</div>
-                <div class="top-item-sub">{artist_streams:,} streams • {artist_mins:,.0f} min</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.info("No data")
-
-with col2:
-    st.markdown(f'<div class="section-title"><span class="section-title-icon">🎵</span> No.1 Track</div>', unsafe_allow_html=True)
-    
-    top_track = (
-        df_f.groupby(["master_metadata_track_name", "master_metadata_album_artist_name"])["ms_played"]
-        .sum()
-        .sort_values(ascending=False)
-        .head(1)
-    )
-    
-    if len(top_track) > 0:
-        (track_name, track_artist) = top_track.index[0]
-        track_streams = df_f[(df_f['master_metadata_track_name'] == track_name) & 
-                            (df_f['master_metadata_album_artist_name'] == track_artist)].shape[0]
-        track_mins = top_track.iloc[0] / (1000 * 60)
-        
-        st.markdown(f"""
-        <div class="top-item-card">
-            <div class="play-icon">▶</div>
-            <div class="top-item-info">
-                <div class="top-item-name">{track_name}</div>
-                <div class="top-item-sub">{track_artist} • {track_streams} plays</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.info("No data")
-
-with col3:
-    st.markdown(f'<div class="section-title"><span class="section-title-icon">📅</span> Your "Commit"-ment to Music</div>', unsafe_allow_html=True)
-    
-    daily = df_f.groupby("date", as_index=False).agg(
-        streams=("ts", "count"),
-        minutes=("ms_played", lambda s: s.sum()/(1000*60))
-    )
-    daily["value"] = daily["streams"] if measure == "Streams" else daily["minutes"]
-    
-    dts = pd.to_datetime(daily["date"])
-    daily["week"] = dts.dt.isocalendar().week.astype(int)
-    daily["dow"] = dts.dt.dayofweek.astype(int)
-    daily["year_week"] = dts.dt.strftime("%Y-W%W")
-    
-    fig_cal = px.density_heatmap(
-        daily,
-        x="year_week",
-        y="dow",
-        z="value",
-        color_continuous_scale=[
-            [0, SPOTIFY["bg_elevated"]],
-            [0.25, "#0d4429"],
-            [0.5, "#166534"],
-            [0.75, "#22c55e"],
-            [1, SPOTIFY["green_light"]]
-        ],
-        labels={"year_week": "", "dow": "", "value": measure}
-    )
-    fig_cal.update_yaxes(
-        tickvals=list(range(7)),
-        ticktext=["M", "T", "W", "T", "F", "S", "S"],
-        autorange="reversed"
-    )
-    fig_cal.update_xaxes(tickangle=45, nticks=15)
-    fig_cal.update_layout(coloraxis_showscale=False)
-    st.plotly_chart(style_fig(fig_cal, height=180, show_legend=False), use_container_width=True)
-
-# Row 2: Listening Clock + Old vs New + Genre Treemap
-col1, col2, col3 = st.columns([1, 1.2, 1.3])
-
-with col1:
-    st.markdown(f'<div class="section-title"><span class="section-title-icon">🕐</span> Listening Clock</div>', unsafe_allow_html=True)
+    section_header("🕐", "Listening Clock", "When you listen most (by hour)")
     
     by_hour = df_f.copy()
     by_hour["m"] = measure_value(by_hour, measure)
     hour_agg = by_hour.groupby("hour", as_index=False)["m"].sum()
-    
-    # Fill missing hours
     all_hours = pd.DataFrame({"hour": range(24)})
     hour_agg = all_hours.merge(hour_agg, on="hour", how="left").fillna(0)
     
-    fig_clock = go.Figure()
-    fig_clock.add_trace(go.Barpolar(
-        r=hour_agg["m"],
-        theta=hour_agg["hour"] * 15,
-        width=[14]*24,
-        marker_color=SPOTIFY["green"],
-        marker_line_color=SPOTIFY["green_light"],
-        marker_line_width=1,
-        opacity=0.85,
-        hovertemplate="Hour %{customdata}:00<br>%{r:.0f} " + measure.lower() + "<extra></extra>",
-        customdata=hour_agg["hour"]
+    fig = go.Figure(go.Barpolar(
+        r=hour_agg["m"], theta=hour_agg["hour"]*15, width=[14]*24,
+        marker_color=SPOTIFY["green"], marker_line_color=SPOTIFY["green_light"], marker_line_width=1, opacity=0.85,
+        hovertemplate="%{customdata}:00<br>%{r:,.0f} " + measure.lower() + "<extra></extra>",
+        customdata=[f"{h:02d}" for h in hour_agg["hour"]]
     ))
-    fig_clock.update_layout(
-        polar=dict(
-            bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(
-                showticklabels=False,
-                showline=False,
-                gridcolor="rgba(64, 64, 64, 0.25)"
-            ),
-            angularaxis=dict(
-                direction="clockwise",
-                rotation=90,
-                tickmode="array",
-                tickvals=[i*15 for i in range(0, 24, 3)],
-                ticktext=[f"{i}" for i in range(0, 24, 3)],
-                tickfont=dict(size=10, color=SPOTIFY["text_muted"]),
-                gridcolor="rgba(64, 64, 64, 0.25)"
-            )
-        ),
-        showlegend=False
+    fig.update_layout(
+        polar=dict(bgcolor="rgba(0,0,0,0)",
+            radialaxis=dict(showticklabels=False, gridcolor="rgba(64,64,64,0.2)"),
+            angularaxis=dict(direction="clockwise", rotation=90, tickmode="array",
+                tickvals=[i*15 for i in range(0, 24, 3)], ticktext=[f"{i}" for i in range(0, 24, 3)],
+                tickfont=dict(size=9, color=SPOTIFY["text_muted"]), gridcolor="rgba(64,64,64,0.2)")),
+        margin=dict(l=30, r=30, t=10, b=10)
     )
-    st.plotly_chart(style_fig(fig_clock, height=260, show_legend=False), use_container_width=True)
+    st.plotly_chart(style_fig(fig, height=220), use_container_width=True, key="clock_chart")
 
 with col2:
-    st.markdown(f'<div class="section-title"><span class="section-title-icon">🆕</span> Discovery: Old vs New Tracks</div>', unsafe_allow_html=True)
-    st.caption("Unique songs per month (first listen = new, revisits = old)")
-    
-    old_new_data = compute_old_vs_new_monthly(df_new_f)
-    
-    if len(old_new_data) > 0:
-        fig_oldnew = go.Figure()
-        
-        if "Old tracks" in old_new_data.columns:
-            fig_oldnew.add_trace(go.Scatter(
-                x=old_new_data["month"],
-                y=old_new_data["Old tracks"],
-                mode="lines+markers",
-                name="Old (revisited)",
-                line=dict(color=SPOTIFY["text_muted"], width=2),
-                marker=dict(size=6),
-                fill="tozeroy",
-                fillcolor="rgba(114, 114, 114, 0.12)"
-            ))
-        
-        if "New tracks" in old_new_data.columns:
-            fig_oldnew.add_trace(go.Scatter(
-                x=old_new_data["month"],
-                y=old_new_data["New tracks"],
-                mode="lines+markers",
-                name="New (discoveries)",
-                line=dict(color=SPOTIFY["green"], width=2),
-                marker=dict(size=6),
-                fill="tozeroy",
-                fillcolor="rgba(29, 185, 84, 0.18)"
-            ))
-        
-        fig_oldnew.update_layout(
-            xaxis_title="",
-            yaxis_title="Unique tracks",
-            hovermode="x unified"
-        )
-        st.plotly_chart(style_fig(fig_oldnew, height=240), use_container_width=True)
-    else:
-        st.info("Not enough data for this chart")
-
-with col3:
-    st.markdown(f'<div class="section-title"><span class="section-title-icon">🎨</span> Top Genres</div>', unsafe_allow_html=True)
-    
-    df_g = df_f.copy()
-    df_g["m"] = measure_value(df_g, measure)
-    bucket_agg = (df_g.groupby("genre_bucket", as_index=False)["m"]
-                .sum()
-                .sort_values("m", ascending=False))
-    
-    fig_genre = px.treemap(
-        bucket_agg,
-        path=["genre_bucket"],
-        values="m",
-        color="genre_bucket",
-        color_discrete_map=GENRE_COLORS
-    )
-    fig_genre.update_traces(
-        hovertemplate="<b>%{label}</b><br>" + measure + ": %{value:,.0f}<extra></extra>",
-        textinfo="label+percent root",
-        textfont=dict(size=12)
-    )
-    fig_genre.update_layout(margin=dict(l=5, r=5, t=5, b=5))
-    st.plotly_chart(style_fig(fig_genre, height=280, show_legend=False), use_container_width=True)
-
-# Row 3: Niche Scatter + Session Time + Billboard
-col1, col2, col3 = st.columns([1.3, 0.8, 1.4])
-
-with col1:
-    st.markdown(f'<div class="section-title"><span class="section-title-icon">🎯</span> How Niche is Your Taste?</div>', unsafe_allow_html=True)
-    st.caption("X = Artist popularity (Spotify 0-100), Y = Your listening volume")
-    
-    tmp3 = df_f.copy()
-    tmp3["m"] = measure_value(tmp3, measure)
-    artist_agg = (tmp3.groupby(["master_metadata_album_artist_name", "artist_popularity"], as_index=False)
-                  .agg(total=("m", "sum"), streams=("ts", "count")))
-    artist_agg = artist_agg.dropna(subset=["artist_popularity"])
-    
-    fig_niche = px.scatter(
-        artist_agg,
-        x="artist_popularity",
-        y="total",
-        size="streams",
-        size_max=25,
-        hover_name="master_metadata_album_artist_name",
-        labels={"artist_popularity": "Artist Popularity", "total": f"Your {measure}"},
-        color_discrete_sequence=[SPOTIFY["green"]]
-    )
-    fig_niche.update_traces(
-        marker=dict(
-            line=dict(width=1, color=SPOTIFY["green_light"]),
-            opacity=0.7
-        )
-    )
-    
-    # Add quadrant lines
-    fig_niche.add_hline(y=artist_agg["total"].median(), line_dash="dash", line_color=SPOTIFY["border"], opacity=0.5)
-    fig_niche.add_vline(x=50, line_dash="dash", line_color=SPOTIFY["border"], opacity=0.5)
-    
-    # Add annotations
-    fig_niche.add_annotation(x=25, y=artist_agg["total"].max() * 0.9, text="Niche favorites", 
-                            showarrow=False, font=dict(size=9, color=SPOTIFY["text_muted"]))
-    fig_niche.add_annotation(x=75, y=artist_agg["total"].max() * 0.9, text="Mainstream favorites",
-                            showarrow=False, font=dict(size=9, color=SPOTIFY["text_muted"]))
-    
-    st.plotly_chart(style_fig(fig_niche, height=280, show_legend=False), use_container_width=True)
-
-with col2:
-    st.markdown(f'<div class="section-title"><span class="section-title-icon">⏱️</span> Session Duration</div>', unsafe_allow_html=True)
+    section_header("⏱️", "Sessions", "Listening session lengths")
     
     df_s = sessionize(df_f, gap_minutes=15)
-    sess = df_s.groupby("session_id", as_index=False).agg(session_minutes=("session_minutes", "first"))
-    sess["bin"] = sess["session_minutes"].apply(bins_session_minutes)
-    sess_bins = sess.groupby("bin", as_index=False).size().rename(columns={"size": "sessions"})
-    
-    order = ["<2h", "2–4h", "4–6h", ">6h"]
-    sess_bins["bin"] = pd.Categorical(sess_bins["bin"], categories=order, ordered=True)
-    sess_bins = sess_bins.sort_values("bin")
-    
-    fig_sess = px.bar(
-        sess_bins,
-        x="bin",
-        y="sessions",
-        labels={"bin": "", "sessions": "Sessions"},
-        color_discrete_sequence=[SPOTIFY["green"]]
-    )
-    fig_sess.update_traces(
-        marker_line_color=SPOTIFY["green_light"],
-        marker_line_width=1
-    )
-    st.plotly_chart(style_fig(fig_sess, height=280, show_legend=False), use_container_width=True)
+    if len(df_s) > 0:
+        sess = df_s.groupby("session_id", as_index=False).agg(session_minutes=("session_minutes", "first"))
+        sess["bin"] = sess["session_minutes"].apply(bins_session_minutes)
+        sess_bins = sess.groupby("bin", as_index=False).size().rename(columns={"size": "sessions"})
+        order = ["<2h", "2–4h", "4–6h", ">6h"]
+        sess_bins["bin"] = pd.Categorical(sess_bins["bin"], categories=order, ordered=True)
+        sess_bins = sess_bins.sort_values("bin")
+        
+        fig = px.bar(sess_bins, x="bin", y="sessions", color_discrete_sequence=[SPOTIFY["green"]])
+        fig.update_traces(marker_line_color=SPOTIFY["green_light"], marker_line_width=1,
+                         hovertemplate="%{x}<br>%{y} sessions<extra></extra>")
+        fig.update_layout(xaxis_title="", yaxis_title="")
+        st.plotly_chart(style_fig(fig, height=220), use_container_width=True, key="sessions_chart")
 
 with col3:
-    st.markdown(f'<div class="section-title"><span class="section-title-icon">📈</span> Your Personal Billboard</div>', unsafe_allow_html=True)
+    section_header("📅", "Commit-ment to Music", "Daily listening activity (GitHub-style)")
     
-    bill_tabs = st.tabs(["🎤 Top Artists", "🎵 Top Songs"])
+    daily = df_f.groupby("date", as_index=False).agg(streams=("ts", "count"), minutes=("ms_played", lambda s: s.sum()/60000))
+    daily["value"] = daily["streams"] if measure == "Streams" else daily["minutes"]
     
-    with bill_tabs[0]:
-        subf = df_f.copy()
-        subf["m"] = measure_value(subf, measure)
-        bill_artists = (subf.groupby("master_metadata_album_artist_name", as_index=False)["m"]
-                       .sum()
-                       .sort_values("m", ascending=False)
-                       .head(5))
-        
-        max_val = bill_artists["m"].max() if len(bill_artists) > 0 else 1
-        
-        billboard_html = ""
-        for i, row in bill_artists.iterrows():
-            pct = (row["m"] / max_val) * 100
-            rank = bill_artists.index.get_loc(i) + 1
-            billboard_html += f"""
-            <div class="billboard-item">
-                <span class="billboard-rank">{rank}</span>
-                <span class="billboard-name">{row['master_metadata_album_artist_name']}</span>
-                <div class="billboard-bar">
-                    <div class="billboard-bar-fill" style="width: {pct}%;"></div>
-                </div>
-                <span class="billboard-value">{fmt_number(row['m'])}</span>
-            </div>
-            """
-        
-        st.markdown(billboard_html, unsafe_allow_html=True)
+    all_dates = pd.date_range(start=start_date, end=end_date, freq='D')
+    full_grid = pd.DataFrame({'date': all_dates.date, 'week': all_dates.strftime("%Y-W%W"), 'dow': all_dates.dayofweek})
+    full_grid = full_grid.merge(daily[['date', 'value']], on='date', how='left').fillna(0)
+    day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    full_grid["day_name"] = full_grid["dow"].apply(lambda x: day_names[x])
     
-    with bill_tabs[1]:
-        bill_songs = (subf.groupby(["master_metadata_track_name", "master_metadata_album_artist_name"], as_index=False)["m"]
-                     .sum()
-                     .sort_values("m", ascending=False)
-                     .head(5))
-        
-        max_val = bill_songs["m"].max() if len(bill_songs) > 0 else 1
-        
-        billboard_html = ""
-        for i, row in bill_songs.iterrows():
-            pct = (row["m"] / max_val) * 100
-            rank = bill_songs.index.get_loc(i) + 1
-            display_name = f"{row['master_metadata_track_name'][:25]}..." if len(row['master_metadata_track_name']) > 25 else row['master_metadata_track_name']
-            billboard_html += f"""
-            <div class="billboard-item">
-                <span class="billboard-rank">{rank}</span>
-                <span class="billboard-name" title="{row['master_metadata_track_name']} - {row['master_metadata_album_artist_name']}">{display_name}</span>
-                <div class="billboard-bar">
-                    <div class="billboard-bar-fill" style="width: {pct}%;"></div>
-                </div>
-                <span class="billboard-value">{fmt_number(row['m'])}</span>
-            </div>
-            """
-        
-        st.markdown(billboard_html, unsafe_allow_html=True)
+    fig = go.Figure(go.Heatmap(
+        x=full_grid["week"], y=full_grid["dow"], z=full_grid["value"],
+        colorscale=[[0, SPOTIFY["bg_elevated"]], [0.2, "#0d4429"], [0.4, "#166534"], [0.7, "#22c55e"], [1, SPOTIFY["green_light"]]],
+        showscale=False, ygap=3, xgap=3,
+        hovertemplate="%{customdata}<br>" + measure + ": %{z:,.0f}<extra></extra>",
+        customdata=full_grid["day_name"]
+    ))
+    fig.update_yaxes(tickvals=list(range(7)), ticktext=day_names, autorange="reversed")
+    fig.update_xaxes(showticklabels=False)
+    fig.update_layout(margin=dict(l=40, r=10, t=10, b=10))
+    st.plotly_chart(style_fig(fig, height=200), use_container_width=True, key="calendar_chart")
 
 # ----------------------------
-# Row 4: Additional Insights (collapsible)
+# ROW 2: No.1 Artist + Artist Gauge | No.1 Track + Track Gauge | Old vs New
 # ----------------------------
-st.markdown("<hr>", unsafe_allow_html=True)
+# Compute discovery metrics first
+pct_new_artists, pct_new_tracks, new_artists_count, new_tracks_count = compute_discovery(df, df_f)
 
-with st.expander("🌞 Deep Dive: Artist → Track Sunburst & More", expanded=False):
-    sun_col, drilldown_col = st.columns(2)
+col1, col2, col3 = st.columns([1, 1, 1.5])
+
+with col1:
+    # No.1 Artist
+    section_header("👑", "No.1 Artist", "Most played by time")
+    top_artist_df = df_f.dropna(subset=["master_metadata_album_artist_name"]).groupby("master_metadata_album_artist_name")["ms_played"].sum().sort_values(ascending=False)
+    if len(top_artist_df) > 0:
+        artist_name = top_artist_df.index[0]
+        artist_streams = df_f[df_f['master_metadata_album_artist_name'] == artist_name].shape[0]
+        artist_mins = top_artist_df.iloc[0] / 60000
+        st.markdown(f"""<div class="top-item-card">
+            <div class="play-icon">▶</div>
+            <div style="flex: 1; min-width: 0;">
+                <div class="top-item-name">{artist_name}</div>
+                <div class="top-item-sub">{artist_streams:,} streams • {artist_mins:,.0f} min</div>
+            </div>
+        </div>""", unsafe_allow_html=True)
     
-    with sun_col:
-        st.markdown("#### Top 3 Artists → Their Top Tracks")
+    # New Artists Gauge
+    section_header("🆕", "New Artists", "First-time artists")
+    st.plotly_chart(create_gauge(pct_new_artists), use_container_width=True, key="gauge_artists")
+    st.caption(f"{new_artists_count} first-time artists")
+
+with col2:
+    # No.1 Track
+    section_header("🎵", "No.1 Track", "Most played song")
+    top_track_df = df_f.dropna(subset=["master_metadata_track_name", "master_metadata_album_artist_name"]).groupby(["master_metadata_track_name", "master_metadata_album_artist_name"])["ms_played"].sum().sort_values(ascending=False)
+    if len(top_track_df) > 0:
+        (track_name, track_artist) = top_track_df.index[0]
+        track_streams = df_f[(df_f['master_metadata_track_name'] == track_name) & (df_f['master_metadata_album_artist_name'] == track_artist)].shape[0]
+        st.markdown(f"""<div class="top-item-card">
+            <div class="play-icon">▶</div>
+            <div style="flex: 1; min-width: 0;">
+                <div class="top-item-name">{track_name}</div>
+                <div class="top-item-sub">{track_artist} • {track_streams} plays</div>
+            </div>
+        </div>""", unsafe_allow_html=True)
+    
+    # New Tracks Gauge
+    section_header("🔍", "New Tracks", "First-time tracks")
+    st.plotly_chart(create_gauge(pct_new_tracks), use_container_width=True, key="gauge_tracks")
+    st.caption(f"{new_tracks_count} first-time tracks")
+
+with col3:
+    section_header("🆕", "Old vs New", "Unique songs: first listens vs revisits per month")
+    
+    #full dataset for first listen detection
+    old_new_data = compute_old_vs_new_monthly_fixed(df, start_date, end_date)
+    
+    if len(old_new_data) > 0 and "Old tracks" in old_new_data.columns:
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=old_new_data["month"], y=old_new_data["Old tracks"], name="Old (revisited)",
+            line=dict(color=SPOTIFY["text_muted"], width=2), marker=dict(size=5),
+            fill="tozeroy", fillcolor="rgba(114, 114, 114, 0.1)"))
+        if "New tracks" in old_new_data.columns:
+            fig.add_trace(go.Scatter(x=old_new_data["month"], y=old_new_data["New tracks"], name="New (discoveries)",
+                line=dict(color=SPOTIFY["green"], width=2), marker=dict(size=5),
+                fill="tozeroy", fillcolor="rgba(29, 185, 84, 0.15)"))
+        fig.update_layout(xaxis_title="", yaxis_title="", hovermode="x unified")
+        st.plotly_chart(style_fig(fig, height=280, show_legend=True), use_container_width=True, key="oldnew_chart")
+    else:
+        st.info("Not enough data")
+    st.caption("Uses full history to determine first listens")
+
+# ----------------------------
+# ROW 3: Sunburst | Genre Treemap
+# ----------------------------
+col1, col2 = st.columns([1, 2])
+
+with col1:
+    # Sunburst Chart
+    section_header("🌞", "Top Artists → Tracks", "Your top 3 artists and their most played tracks")
+    sun_df = df_f.dropna(subset=["master_metadata_album_artist_name", "master_metadata_track_name"]).copy()
+    sun_df["m"] = measure_value(sun_df, measure)
+    
+    artist_totals = sun_df.groupby("master_metadata_album_artist_name")["m"].sum()
+    top3 = artist_totals.nlargest(3).index.tolist()
+    sun_df = sun_df[sun_df["master_metadata_album_artist_name"].isin(top3)]
+    
+    sun_agg = sun_df.groupby(["master_metadata_album_artist_name", "master_metadata_track_name"])["m"].sum().reset_index()
+    sun_agg = sun_agg.groupby("master_metadata_album_artist_name", group_keys=False).apply(lambda g: g.nlargest(4, "m"))
+    
+    if len(sun_agg) > 0:
+        fig = px.sunburst(sun_agg, path=["master_metadata_album_artist_name", "master_metadata_track_name"], values="m",
+                          color="master_metadata_album_artist_name", color_discrete_sequence=[SPOTIFY["green"], "#06B6D4", "#F97316"])
+        fig.update_traces(textinfo="label+percent parent", insidetextorientation="radial",
+                         hovertemplate="<b>%{label}</b><br>%{value:,.0f} " + measure.lower() + "<extra></extra>")
+        fig.update_layout(margin=dict(l=5, r=5, t=5, b=5))
+        st.plotly_chart(style_fig(fig, height=320), use_container_width=True, key="sunburst_chart")
+
+with col2:
+    section_header("🎨", "Genres", "Click a genre to see subgenres, click center to go back")
+    
+    genre_df = df_f.dropna(subset=["genre_bucket"]).copy()
+    genre_df["m"] = measure_value(genre_df, measure)
+    
+    # Explode subgenres for hierarchical treemap
+    genre_df["subgenres"] = genre_df["artist_genres"].apply(
+        lambda x: [g.strip() for g in str(x).split(",") if g.strip() and clean_string(g.strip())] if x else ["(no subgenre)"]
+    )
+    
+    rows = []
+    for _, r in genre_df.iterrows():
+        bucket = r["genre_bucket"]
+        m_val = r["m"]
+        subgenres = r["subgenres"] if r["subgenres"] else ["(no subgenre)"]
+        for sg in subgenres:
+            rows.append({"genre_bucket": bucket, "subgenre": sg, "m": m_val / len(subgenres)})
+    
+    if rows:
+        treemap_df = pd.DataFrame(rows).groupby(["genre_bucket", "subgenre"], as_index=False)["m"].sum()
         
-        tmp2 = df_f.copy()
-        tmp2["m"] = measure_value(tmp2, measure)
-        top3_art = tmp2.groupby("master_metadata_album_artist_name")["m"].sum().sort_values(ascending=False).head(3).index
-        tmp2 = tmp2[tmp2["master_metadata_album_artist_name"].isin(top3_art)].copy()
+        # Create gradient colors for subgenres within each bucket
+        def hex_to_rgb(hex_color):
+            hex_color = hex_color.lstrip('#')
+            return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
         
-        track_rank = (tmp2.groupby(["master_metadata_album_artist_name", "master_metadata_track_name"])["m"]
-                      .sum()
-                      .reset_index()
-                      .sort_values(["master_metadata_album_artist_name", "m"], ascending=[True, False]))
-        track_rank["rk"] = track_rank.groupby("master_metadata_album_artist_name").cumcount() + 1
-        keep_tracks = track_rank[track_rank["rk"] <= 4][["master_metadata_album_artist_name", "master_metadata_track_name"]]
-        tmp2 = tmp2.merge(keep_tracks, on=["master_metadata_album_artist_name", "master_metadata_track_name"], how="inner")
+        def rgb_to_hex(rgb):
+            return '#{:02x}{:02x}{:02x}'.format(int(rgb[0]), int(rgb[1]), int(rgb[2]))
         
-        sun = tmp2.groupby(["master_metadata_album_artist_name", "master_metadata_track_name"], as_index=False)["m"].sum()
+        def create_gradient_color(base_hex, intensity):
+            """Create a color that's a gradient from dark to the base color"""
+            base_rgb = hex_to_rgb(base_hex)
+            dark_rgb = (25, 25, 25)
+            new_rgb = tuple(dark_rgb[i] + (base_rgb[i] - dark_rgb[i]) * intensity for i in range(3))
+            return rgb_to_hex(new_rgb)
         
-        fig_sun = px.sunburst(
-            sun,
-            path=["master_metadata_album_artist_name", "master_metadata_track_name"],
+        # Build complete color map
+        color_map = {"(?)": "#1a1a1a", "All Genres": "#1a1a1a"}
+        
+        # Add bucket colors first
+        for bucket in GENRE_COLORS:
+            color_map[bucket] = GENRE_COLORS[bucket]
+        
+        # Calculate gradient colors for each subgenre
+        for bucket in treemap_df["genre_bucket"].unique():
+            bucket_data = treemap_df[treemap_df["genre_bucket"] == bucket].copy()
+            max_m = bucket_data["m"].max()
+            min_m = bucket_data["m"].min()
+            base_color = GENRE_COLORS.get(bucket, SPOTIFY["green"])
+            
+            for _, row in bucket_data.iterrows():
+                # Intensity range 0.35 to 1.0 to avoid too dark
+                if max_m > min_m:
+                    intensity = 0.35 + 0.65 * (row["m"] - min_m) / (max_m - min_m)
+                else:
+                    intensity = 1.0
+                color_map[row["subgenre"]] = create_gradient_color(base_color, intensity)
+        
+        # Create a unique color key for proper coloring
+        treemap_df["color_key"] = treemap_df["subgenre"]
+        
+        fig = px.treemap(
+            treemap_df,
+            path=[px.Constant("All Genres"), "genre_bucket", "subgenre"],
             values="m",
-            color="master_metadata_album_artist_name",
-            color_discrete_sequence=[SPOTIFY["green"], "#22d3ee", "#f97316"]
+            color="color_key",
+            color_discrete_map=color_map
         )
-        fig_sun.update_traces(
-            textinfo="label",
-            insidetextorientation="radial"
+        
+        # Override parent colors explicitly
+        fig.update_traces(
+            textinfo="label+percent parent",
+            textfont=dict(size=12),
+            marker=dict(cornerradius=5),
+            hovertemplate="<b>%{label}</b><br>%{value:,.0f} " + measure.lower() + "<extra></extra>",
+            root_color="#1a1a1a"
         )
-        st.plotly_chart(style_fig(fig_sun, height=350, show_legend=False), use_container_width=True)
+        fig.update_layout(margin=dict(l=5, r=5, t=5, b=5))
+        st.plotly_chart(style_fig(fig, height=320), use_container_width=True, key="genre_treemap")
+
+# ----------------------------
+# ROW 4: Niche | Billboard
+# ----------------------------
+col1, col2 = st.columns(2)
+
+with col1:
+    section_header("🎯", "Niche Score", "X = Spotify popularity, Y = your listening. Bottom-left = niche!")
     
-    with drilldown_col:
-        st.markdown("#### Genre Drilldown: Subgenres")
-        
-        bucket = st.selectbox(
-            "Select a genre bucket to explore",
-            sorted(df_f["genre_bucket"].unique().tolist())
-        )
-        
-        df_sub = df_f[df_f["genre_bucket"] == bucket].copy()
-        df_sub["m"] = measure_value(df_sub, measure)
-        
-        sub = (df_sub.assign(subgenre=df_sub["artist_genres"].str.split(","))
-               .explode("subgenre"))
-        sub["subgenre"] = sub["subgenre"].astype(str).str.strip()
-        sub = sub[sub["subgenre"].str.len() > 0]
-        
-        sub_agg = (sub.groupby("subgenre", as_index=False)["m"]
-                   .sum()
-                   .sort_values("m", ascending=False)
-                   .head(12))
-        
-        fig_sub = px.bar(
-            sub_agg,
-            x="m",
-            y="subgenre",
-            orientation="h",
-            labels={"m": measure, "subgenre": ""},
-            color_discrete_sequence=[GENRE_COLORS.get(bucket, SPOTIFY["green"])]
-        )
-        fig_sub.update_layout(yaxis=dict(categoryorder="total ascending"))
-        st.plotly_chart(style_fig(fig_sub, height=350, show_legend=False), use_container_width=True)
+    niche_df = df_f.dropna(subset=["master_metadata_album_artist_name", "artist_popularity"]).copy()
+    niche_df["m"] = measure_value(niche_df, measure)
+    artist_agg = niche_df.groupby(["master_metadata_album_artist_name", "artist_popularity"], as_index=False).agg(
+        val=("m", "sum"), streams=("ts", "count"))
+    
+    if len(artist_agg) > 0:
+        # no "total" in hover, just artist name, popularity, streams
+        fig = px.scatter(artist_agg, x="artist_popularity", y="val", size="streams", size_max=20,
+                        hover_name="master_metadata_album_artist_name",
+                        hover_data={"artist_popularity": True, "val": False, "streams": True},
+                        labels={"artist_popularity": "Popularity", "streams": "Streams"},
+                        color_discrete_sequence=[SPOTIFY["green"]])
+        fig.update_traces(marker=dict(opacity=0.7, line=dict(width=1, color=SPOTIFY["green_light"])))
+        fig.add_vline(x=50, line_dash="dash", line_color=SPOTIFY["border"], opacity=0.4)
+        max_y = artist_agg["val"].max()
+        fig.add_annotation(x=25, y=max_y*0.9, text="🎯 Niche", showarrow=False, font=dict(size=9, color=SPOTIFY["green"]))
+        fig.add_annotation(x=75, y=max_y*0.9, text="🌟 Mainstream", showarrow=False, font=dict(size=9, color=SPOTIFY["text_muted"]))
+        fig.update_xaxes(title="Popularity")
+        fig.update_yaxes(title=measure)
+        st.plotly_chart(style_fig(fig, height=280), use_container_width=True, key="niche_chart")
+
+with col2:
+    section_header("📈", "Billboard", "Your top artists & songs")
+    
+    tab1, tab2 = st.tabs(["🎤 Artists", "🎵 Songs"])
+    
+    # Use same measure calculation as sunburst for consistency
+    bill_df = df_f.dropna(subset=["master_metadata_album_artist_name"]).copy()
+    bill_df["m"] = measure_value(bill_df, measure)
+    
+    with tab1:
+        # Billboard artists - same calculation as sunburst
+        bill_artists = bill_df.groupby("master_metadata_album_artist_name", as_index=False)["m"].sum().sort_values("m", ascending=False).head(5)
+        if len(bill_artists) > 0:
+            max_val = bill_artists["m"].max()
+            html = ""
+            for idx, (_, row) in enumerate(bill_artists.iterrows()):
+                pct = (row["m"] / max_val) * 100
+                html += f"""<div class="billboard-item">
+                    <span class="billboard-rank">{idx+1}</span>
+                    <span class="billboard-name">{row['master_metadata_album_artist_name']}</span>
+                    <div class="billboard-bar"><div class="billboard-bar-fill" style="width:{pct}%;"></div></div>
+                    <span class="billboard-value">{fmt_number(row['m'])}</span>
+                </div>"""
+            st.markdown(html, unsafe_allow_html=True)
+    
+    with tab2:
+        bill_tracks = df_f.dropna(subset=["master_metadata_track_name", "master_metadata_album_artist_name"]).copy()
+        bill_tracks["m"] = measure_value(bill_tracks, measure)
+        bill_tracks = bill_tracks.groupby(["master_metadata_track_name", "master_metadata_album_artist_name"], as_index=False)["m"].sum().sort_values("m", ascending=False).head(5)
+        if len(bill_tracks) > 0:
+            max_val = bill_tracks["m"].max()
+            html = ""
+            for idx, (_, row) in enumerate(bill_tracks.iterrows()):
+                pct = (row["m"] / max_val) * 100
+                name = row['master_metadata_track_name'][:20] + "..." if len(row['master_metadata_track_name']) > 20 else row['master_metadata_track_name']
+                html += f"""<div class="billboard-item">
+                    <span class="billboard-rank">{idx+1}</span>
+                    <span class="billboard-name" title="{row['master_metadata_track_name']}">{name}</span>
+                    <div class="billboard-bar"><div class="billboard-bar-fill" style="width:{pct}%;"></div></div>
+                    <span class="billboard-value">{fmt_number(row['m'])}</span>
+                </div>"""
+            st.markdown(html, unsafe_allow_html=True)
 
 # ----------------------------
-# Footer: Takeaway Stats
+# KEY TAKEAWAYS 
 # ----------------------------
-st.markdown("<hr>", unsafe_allow_html=True)
+st.markdown("---")
+section_header("💡", "Key Takeaways", "Summary of your listening profile")
 
-st.markdown(f'<div class="section-title"><span class="section-title-icon">💡</span> Key Takeaways</div>', unsafe_allow_html=True)
-
-take_col1, take_col2, take_col3, take_col4 = st.columns(4)
-
-avg_pop = df_f["artist_popularity"].dropna().mean() if df_f["artist_popularity"].notna().any() else np.nan
-new_share = df_new_f["is_new_to_you"].mean() * 100 if len(df_new_f) else 0
+avg_pop = df_f["artist_popularity"].dropna().mean() if df_f["artist_popularity"].notna().any() else 50
 skip_rate = df_f["skipped"].mean() * 100 if len(df_f) > 0 else 0
+peak_hour = hour_agg.loc[hour_agg["m"].idxmax(), "hour"] if len(hour_agg) > 0 else 12
 
-# Peak listening hour
-peak_hour = hour_agg.loc[hour_agg["m"].idxmax(), "hour"] if len(hour_agg) > 0 else 0
+# Determine labels with thresholds explained
+pop_label = "Mainstream 🌟" if avg_pop > 60 else ("Balanced 🎭" if avg_pop > 40 else "Indie 🎯")
+skip_label = "Picky 🎯" if skip_rate > 20 else ("Selective 👀" if skip_rate > 10 else "Loyal 💚")
+hour_label = "Night owl 🦉" if peak_hour >= 22 or peak_hour < 6 else ("Early bird 🌅" if peak_hour < 12 else "Afternoon ☀️")
 
-with take_col1:
-    taste_desc = "Mainstream" if avg_pop > 60 else ("Balanced" if avg_pop > 40 else "Indie/Niche")
-    st.metric("🎯 Avg Artist Popularity", f"{avg_pop:.0f}/100" if not np.isnan(avg_pop) else "—", taste_desc)
-
-with take_col2:
-    discovery_desc = "Explorer!" if new_share > 30 else ("Balanced" if new_share > 15 else "Comfort zone")
-    st.metric("🆕 Discovery Rate", f"{new_share:.1f}%", discovery_desc)
-
-with take_col3:
-    skip_desc = "Picky listener" if skip_rate > 20 else ("Average" if skip_rate > 10 else "Committed")
-    st.metric("⏭️ Skip Rate", f"{skip_rate:.1f}%", skip_desc)
-
-with take_col4:
-    hour_desc = "Night owl 🦉" if peak_hour >= 22 or peak_hour < 6 else ("Morning person 🌅" if peak_hour < 12 else "Afternoon vibes ☀️")
-    st.metric("🕐 Peak Hour", f"{int(peak_hour):02d}:00", hour_desc)
-
-# Footer
 st.markdown(f"""
-<div style="text-align: center; margin-top: 40px; padding: 20px; color: {SPOTIFY['text_muted']}; font-size: 0.8rem;">
-    <p>Made with 💚 using Streamlit • Data from your Spotify listening history</p>
-    <p style="margin-top: 8px;">🎧 Musical Fingerprint — Your unique listening DNA</p>
+<div class="kpi-container">
+    <div class="kpi-card">
+        <div class="kpi-label">Avg Popularity ⓘ</div>
+        <div class="kpi-value">{avg_pop:.0f}/100</div>
+        <div class="kpi-trend">↑ {pop_label}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Skip Rate ⓘ</div>
+        <div class="kpi-value">{skip_rate:.1f}%</div>
+        <div class="kpi-trend">↑ {skip_label}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Peak Hour ⓘ</div>
+        <div class="kpi-value">{int(peak_hour):02d}:00</div>
+        <div class="kpi-trend">↑ {hour_label}</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.caption("**Avg Popularity**: Spotify's popularity score (0-100) of artists you listen to. <40 = indie, 40-60 = balanced, >60 = mainstream")
+st.caption("**Skip Rate**: How often you skip songs. >20% = picky, 10-20% = selective, <10% = loyal listener")
+
+# ----------------------------
+# FOOTER
+# ----------------------------
+st.markdown(f"""
+<div style="text-align:center; margin-top:40px; padding:20px; color:{SPOTIFY['text_muted']}; font-size:0.75rem;">
+    🎧 Musical Fingerprint • {start_date} to {end_date} • {total_streams:,} plays
 </div>
 """, unsafe_allow_html=True)
